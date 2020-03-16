@@ -1,9 +1,3 @@
-# import numpy as np
-# a = np.array([True, False])
-# print(a)
-# print(a + 0)
-
-
 # def hour_to_day (hdata,startHour,endHour):  # 根据nc文件中的小时数据，得出每日平均数据
 #     mean = np.zeros((17,22))
 #     while startHour <= endHour:
@@ -31,36 +25,31 @@ def getTimeValue(self):
     for key in self.variables.keys():  # 在变量中筛选出time变量的全部信息
         if key.lower() in ['time', 't']:
             dateTimeNumList = self.variables[key][:]  # 获取time字段全部值
-            # 获取初始时间信息 'since yyyymmddhhmmss'
-            dateTimeUnits = self.variables[key].units
+            dateTimeUnits = self.variables[key].units  # 获取初始时间信息
             break
 
-    dateTimeStrList = []  # 该列表每个元素都是时间直观的字符串
-    # -1提取日期,'hours since yyyymmddhhmmss'
-    startDateTimeStr = ' '.join(dateTimeUnits.split()[-1:])
-    print(dateTimeUnits.split()[:])
-    print(startDateTimeStr)
+    dateTimeStrList = []  # 该列表存储真实日期字符串
+    dayValueList = []  # 该列表存储日值数据对应的time字段值
 
-    stdt = datetime.datetime.strptime(startDateTimeStr, '%Y%m%d%H%M%S')
-    if dateTimeUnits.split()[0] == 'hours':
-        for dtn in dateTimeNumList:
-            dt = stdt + datetime.timedelta(hours=dtn)  # type is datetime
-            ymd = dt.strftime('%Y-%m-%d')
+    # dateTimeUnits = 'hours since yyyymmddhhmmss'
+    startDateTimeStr = ' '.join(dateTimeUnits.split()[-1:])  # -1提取日期
 
-            dateTimeStrList.append(ymd)
-            # DIFF存放没有20点数据的日期，则取15点或9点的
-            # if ymd in DIFF5 and dtn % 24 == 15:
-            #     self.dateFlagList.append(True)
-            #     print(ymd)
-            # else:
-            #     self.dateFlagList.append(False)
-            # 只提取某天20点的数据
-            # if dtn % 24 == 20:
-            #     self.dateFlagList.append(True)
-            # else:
-            #     self.dateFlagList.append(False)
+    stdt = datetime.datetime.strptime(
+        startDateTimeStr, '%Y%m%d%H%M%S')  # stdt=真实起始时间
 
-    return dateTimeStrList
+    if dateTimeUnits.split()[0] == 'hours':  # 0提取计时单位
+        for dtn in dateTimeNumList:  # 逐一提取time字段值
+            dt = stdt + datetime.timedelta(hours=dtn)  # 真实时间 = 起始时间 + 时间差
+            ymdH = dt.strftime('%Y-%m-%d')  # 生成真实日期字符串
+            H = dt.strftime('%H')  # 生成真实时间值
+            dateTimeStrList.append(ymdH)
+
+            # 取出每日20点的time字段值，并存入列表
+            if int(H) % 24 == 20:
+                dayValueList.append(dtn)
+
+    return dateTimeStrList, dayValueList
 
 
-print(getTimeValue(f))
+print(getTimeValue(f)[0])
+print(getTimeValue(f)[1])
