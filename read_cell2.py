@@ -5,7 +5,7 @@ import numpy as np
 import datetime
 import time
 
-filename = 'C:/Users/Zn/Desktop/WORK/2019120516.nc'   # .nc文件路径
+filename = 'C:/Users/Zn/Desktop/ncdata/2019110110.nc'   # .nc文件路径
 f = nc.Dataset(filename)  # 读取.nc文件，传入f中。此时f包含了该.nc文件的全部信息
 
 var_lat, var_lon, var_TMax24, var_TMin24, var_Ww12 = 'lat', 'lon', 'TMax24', 'TMin24', 'Ww12'
@@ -53,15 +53,6 @@ def getTimeValue(self):
     return dateTimeStrList, dayValueList, dateTimeNumList
 
 
-def findcell(t, x, y, attribute):  # 传入定位下标参数与目标属性，输出所需位置的属性值
-    attribute_week = []
-    for i in t:
-        attribute_day = attribute[i][y][x]
-        attribute_week.append(attribute_day)
-
-    return attribute_week
-
-
 # 获取一星期time数据对应下标
 daylist = getTimeValue(f)[1]
 week = daylist[:7]
@@ -80,6 +71,15 @@ lat_in = np.argwhere(var_lat_data == float(ylat))
 #print("读取输入的经纬度对应下标：", lon_in, lat_in)
 lon_out, lat_out = int(lon_in[0]), int(lat_in[0])
 #print("输入的经纬度对应下标分别是：", lon_out, lat_out)
+
+
+def findcell(t, x, y, attribute):  # 传入定位下标参数与目标属性，输出所需位置的属性值
+    attribute_week = []
+    for i in t:
+        attribute_day = attribute[i][y][x]
+        attribute_week.append(attribute_day)
+
+    return attribute_week
 
 
 TMax_week = findcell(weeklist, lon_out, lat_out, var_TMax24_data)
