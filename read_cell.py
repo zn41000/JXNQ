@@ -55,3 +55,5 @@ Ww_week = [weather[x] if x in weather else x for x in Ww_week]
 print("一周最高气温：", TMax_week)
 print("一周最低气温：", TMin_week)
 print("一周天气现象：", Ww_week)
+
+# 在AMD主机上修改
