@@ -175,7 +175,7 @@ if __name__ == '__main__':
     #    filename = sys.argv[1]
     #    pr_Threshold = sys.argv[2]
     #    te_Threshold = sys.argv[3]
-    #    outpath = sys.argv[4]
+    #    outputname = sys.argv[4]
 
     filename = r'C:\Users\LX\Desktop\zngxjx\nc\2019110110.nc'   # .nc文件名
     outputname = r'C:\Users\LX\Desktop\zngxjx\output/2.png'
