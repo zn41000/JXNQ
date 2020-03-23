@@ -1,190 +1,119 @@
 # -*- coding: UTF-8 -*-
-#导入nc库
+# 导入nc库
 import netCDF4 as nc
 import numpy as np
-# from PIL import Image
-# import matplotlib
-# import matplotlib.pyplot as pyplot
-# from scipy import misc
-#import imageio
+import datetime
+import time
 import cv2
 
 filename = 'C:/Users/Zn/Desktop/WORK/2019120516.nc'   # .nc文件名
-f = nc.Dataset(filename)   #读取.nc文件，传入f中。此时f包含了该.nc文件的全部信息
+f = nc.Dataset(filename)  # 读取.nc文件，传入f中。此时f包含了该.nc文件的全部信息
 
-var = 'T'
-var_info = f.variables[var]   #获取变量信息
-var_data = f[var][:]   #获取变量的数据
-print(var_info)
-#print(var_data.shape)  
+var_max = 'TMax24'
+var_max_data = f[var_max][:]  # 获取变量的数据
+var_max_data = np.array(var_max_data)  # 转化为np.array数组
 
-#很方便转化为array数组
-#print(type(var_data))    #<class 'numpy.ma.core.MaskedArray'>  .nc文件的变量数组都为Masked array
-var_data = np.array(var_data)  #转化为np.array数组
-# print(var_data[0][0][0])
-# print(var_data[1][0][0])
-# #print(var_data[2][0][0])
-# print((var_data[0][0][0] + var_data[1][0][0])/2)
-#print(var_data[0][0][0] / var_data[1][0][0])
+var_min = 'TMin24'
+var_min_data = f[var_min][:]  # 获取变量的数据
+var_min_data = np.array(var_min_data)  # 转化为np.array数组
 
-def hour_to_day (hdata,startHour,endHour):  # 根据nc文件中的小时数据，得出每日平均数据
-    mean = np.zeros((17,22))
-    start = startHour
-    while startHour <= endHour:
-        mean = hdata[startHour][:] + mean
-        #  print("table:", startHour)
-        #print(mean)
-        startHour += 1
-    mean_day = mean / (endHour - start + 1)
-    #  print(endHour - start + 1)
-    return mean_day
-
-day1 = hour_to_day (var_data,0,14) #第1天日均温度
-day2 = hour_to_day (var_data,15,38) #第2天日均温度
-day3 = hour_to_day (var_data,39,54) #第3天日均温度
-day4 = hour_to_day (var_data,55,58) #第4天日均温度
-day5 = hour_to_day (var_data,59,62) #第5天日均温度
-day6 = hour_to_day (var_data,63,66) #第6天日均温度
-day7 = hour_to_day (var_data,67,70) #第7天日均温度
-day8 = hour_to_day (var_data,71,74) #第8天日均温度
-day9 = hour_to_day (var_data,75,78) #第9天日均温度
-day10 = hour_to_day (var_data,79,81) #第10天日均温度
-day11 = hour_to_day (var_data,82,83) #第11天日均温度
-day12 = hour_to_day (var_data,84,85) #第12天日均温度
-day13 = hour_to_day (var_data,86,87) #第13天日均温度
-day14 = hour_to_day (var_data,88,89) #第14天日均温度
-day15 = hour_to_day (var_data,90,91) #第15天日均温度
-# print((day1<9)+0)
-# print(((day1<9)+0)+0)
-QJDW_1=((day1<9)+0)+((day2<9)+0)+((day3<9)+0)
-DW1 = ((QJDW_1>2)+0)
-print(DW1)
-DW_out1=DW1 *85
-DW_out1 = DW_out1.astype(np.float32)
-DW_out1 = cv2.resize(DW_out1,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day1.png',DW_out1)
-
-QJDW_2=((day2<9)+0)+((day3<9)+0)+((day4<9)+0)
-DW2 = ((QJDW_2>2)+0)
-
-DW_out2=DW2 *85
-DW_out2 = DW_out2.astype(np.float32)
-DW_out2 = cv2.resize(DW_out2,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day2.png',DW_out2)
-
-QJDW_3=((day3<9)+0)+((day4<9)+0)+((day5<9)+0)
-DW3 = ((QJDW_3>2)+0)
-
-DW_out3=DW3 *85
-DW_out3 = DW_out3.astype(np.float32)
-DW_out3 = cv2.resize(DW_out3,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day3.png',DW_out3)
-
-QJDW_4=((day4<9)+0)+((day5<9)+0)+((day6<9)+0)
-DW4 = ((QJDW_4>2)+0)
-
-DW_out4=DW4 *85
-DW_out4 = DW_out4.astype(np.float32)
-DW_out4 = cv2.resize(DW_out4,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day4.png',DW_out4)
-
-QJDW_5=((day5<9)+0)+((day6<9)+0)+((day7<9)+0)
-DW5 = ((QJDW_5>2)+0)
-
-DW_out5=DW5 *85
-DW_out5 = DW_out5.astype(np.float32)
-DW_out5 = cv2.resize(DW_out5,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day5.png',DW_out5)
-
-QJDW_6=((day6<9)+0)+((day7<9)+0)+((day8<9)+0)
-DW6 = ((QJDW_6>2)+0)
-
-DW_out6=DW6 *85
-DW_out6 = DW_out6.astype(np.float32)
-DW_out6 = cv2.resize(DW_out6,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day6.png',DW_out6)
-
-QJDW_7=((day7<9)+0)+((day8<9)+0)+((day9<9)+0)
-DW7 = ((QJDW_7>2)+0)
-
-DW_out7=DW7 *85
-DW_out7 = DW_out7.astype(np.float32)
-DW_out7 = cv2.resize(DW_out7,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day7.png',DW_out7)
+threshold = 9  # 输入阈值
 
 
-QJDW_8=((day8<9)+0)+((day9<9)+0)+((day10<9)+0)
-DW8 = ((QJDW_8>2)+0)
+def getTimeValue(self):
 
-DW_out8=DW8 *85
-DW_out8 = DW_out8.astype(np.float32)
-DW_out8 = cv2.resize(DW_out8,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day8.png',DW_out8)
+    dateTimeNumList = []  # 准备存储time的值
+    dateTimeUnits = ''  # 准备记录初始时间
+    for key in self.variables.keys():  # 在变量中筛选出time变量的全部信息
+        if key.lower() in ['time', 't']:
+            dateTimeNumList = self.variables[key][:]  # 获取time字段全部值
+            dateTimeUnits = self.variables[key].units  # 获取初始时间信息
+            break
 
-QJDW_9=((day9<9)+0)+((day10<9)+0)+((day11<9)+0)
-DW9 = ((QJDW_9>2)+0)
+    dateTimeStrList = []  # 该列表存储真实日期字符串
+    dayValueList = []  # 该列表存储日值数据对应的time字段值
 
-DW_out9=DW9 *85
-DW_out9 = DW_out9.astype(np.float32)
-DW_out9 = cv2.resize(DW_out9,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day9.png',DW_out9)
+    # dateTimeUnits = 'hours since yyyymmddhhmmss'
+    startDateTimeStr = ' '.join(dateTimeUnits.split()[-1:])  # -1提取日期
 
-QJDW_10=((day10<9)+0)+((day11<9)+0)+((day12<9)+0)
-DW10 = ((QJDW_10>2)+0)
+    stdt = datetime.datetime.strptime(
+        startDateTimeStr, '%Y%m%d%H%M%S')  # stdt=真实起始时间
 
-DW_out10=DW10 *85
-DW_out10 = DW_out10.astype(np.float32)
-DW_out10 = cv2.resize(DW_out10,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day10.png',DW_out10)
+    if dateTimeUnits.split()[0] == 'hours':  # 0提取计时单位
+        for dtn in dateTimeNumList:  # 逐一提取time字段值
+            dt = stdt + datetime.timedelta(hours=dtn)  # 真实时间 = 起始时间 + 时间差
+            ymdH = dt.strftime('%Y-%m-%d')  # 生成真实日期字符串
+            H = dt.strftime('%H')  # 生成真实时间值
+            dateTimeStrList.append(ymdH)
 
-QJDW_11=((day11<9)+0)+((day12<9)+0)+((day13<9)+0)
-DW11 = ((QJDW_11>2)+0)
+            # 取出每日20点的time字段值，并存入列表
+            if int(H) % 24 == 20:
+                dayValueList.append(dtn)
 
-DW_out11=DW11 *85
-DW_out11 = DW_out11.astype(np.float32)
-DW_out11 = cv2.resize(DW_out11,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day11.png',DW_out11)
+    # 分别返回：真实日期列表，逐日time值列表，全部time值列表
+    return dateTimeStrList, dayValueList, dateTimeNumList
 
-QJDW_12=((day12<9)+0)+((day13<9)+0)+((day14<9)+0)
-DW12 = ((QJDW_12>2)+0)
 
-DW_out12=DW12 *85
-DW_out12 = DW_out12.astype(np.float32)
-DW_out12 = cv2.resize(DW_out12,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day12.png',DW_out12)
+# 获取日值数据对应下标
+timelist = getTimeValue(f)[1]
+daylist = []
+for day in timelist:
+    day_in = np.argwhere(getTimeValue(f)[2] == day)  # week_in为np格式浮点数
+    day_out = int(day_in[0])  # 转化为int整数
+    daylist.append(day_out)
+print(daylist)
 
-QJDW_13=((day13<9)+0)+((day14<9)+0)+((day15<9)+0)
-DW13 = ((QJDW_13>2)+0)
+# 获取15天的日值数据
+TMax_daylist = []
+for d in daylist:
+    TMax_daylist.append(var_max_data[d][:])
+print(np.shape(TMax_daylist))
 
-DW_out13=DW13 *85
-DW_out13 = DW_out13.astype(np.float32)
-DW_out13 = cv2.resize(DW_out13,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/day13.png',DW_out13)
+TMin_daylist = []
+for d in daylist:
+    TMin_daylist.append(var_min_data[d][:])
+print(np.shape(TMin_daylist))
 
-QJDW_sum = DW1 + DW2 + DW3 + DW4 + DW5 + DW6 + DW7 + DW8 + DW9 + DW10 + DW11 + DW12 +DW13
-# print(QJDW_sum)
-QJDW_sum=QJDW_sum *85
-print(QJDW_sum)
-QJDW_sum2 = QJDW_sum.astype(np.float32)
-QJDW_sum3 = cv2.resize(QJDW_sum2,(440, 340),interpolation = cv2.INTER_NEAREST)
-cv2.imwrite('C:/Users/Zn/Desktop/WORK/test7.png',QJDW_sum3)
+# 获取日均值数据
+Tmean_list = (np.array(TMax_daylist) - np.array(TMin_daylist)) / 2
 
-# im = Image.fromarray(QJDW_sum)
-# im.save("C:/Users/Zn/Desktop/WORK/outfile.jpeg")
-# matplotlib.pyplot.imshow(QJDW_sum)
+diwen_ez = []
+for i in range(15):
+    condition = np.where(Tmean_list[i][:] < threshold, 1, 0)  # 根据阈值二值化
+    diwen_ez.append(condition)  # 存入二值数据
+diwen_ez = np.array(diwen_ez)  # 便于后续计算
 
-# def out_img(data):                 #输出图片
-#     new_im = Image.fromarray(data)     #调用Image库，数组归一化 
-#     #new_im.show() 
+print(type(diwen_ez))
+print(np.shape(diwen_ez))
 
-#     pyplot.rcParams['figure.figsize'] = (8.0, 4.0) # 设置figure_size尺寸
-#     pyplot.rcParams['image.interpolation'] = 'nearest' # 设置 interpolation style
-#     pyplot.rcParams['image.cmap'] = 'hot' # 设置 颜色 style
-#     pyplot.rcParams['savefig.dpi'] = 300 #图片像素
-#     pyplot.rcParams['figure.dpi'] = 300 #分辨率
+diwen_list = []  # 用于将15天二值数据每三天求和，然后储存
+diwen_mark = []  # 记录每一次出现满足预警条件的日期下标
+diwen_condition = np.zeros((17, 22))  # 判断连续3天条件
+for x in range(13):
+    diwen_condition = diwen_ez[x][:] + diwen_ez[x+1][:] + diwen_ez[x+2][:]
+    diwen_list.append(diwen_condition)
+    if np.max(diwen_condition) == 3:
+        diwen_mark_in = np.argwhere(
+            getTimeValue(f)[2] == getTimeValue(f)[1][x])
+        diwen_mark.append(int(diwen_mark_in[0]))
 
-#     pyplot.imshow(data)                  #显示新图片
-#     imageio.imwrite('C:/Users/Zn/Desktop/WORK/outfile7.png', new_im)   #保存图片到本地
+print(diwen_mark)
 
-# out_img(QJDW_sum)
+print(np.shape(diwen_list))
 
+diwen_days = []  # 记录出现满足预警条件的日期
+for mark in diwen_mark:
+    diwen_days.append(getTimeValue(f)[0][mark])
+
+dw_alert_sum = np.zeros((17, 22))
+for diwen in np.array(diwen_list, dtype=int):
+    dw_alert = np.where(diwen > 2, 1, 0)  # 根据出现预警的次数二值化
+    dw_alert_sum += dw_alert  # 叠加总次数为一张图（一个点最多出现13次）
+
+# 出图
+dw_alert_sum = dw_alert_sum * 19  # 19=255/13 取整
+print(dw_alert_sum)
+dw_alert_sum = dw_alert_sum.astype(np.float32)
+dw_alert_sum = cv2.resize(dw_alert_sum, (440, 340),
+                          interpolation=cv2.INTER_NEAREST)
+cv2.imwrite('C:/Users/Zn/Desktop/WORK/diwen/diwen.png', dw_alert_sum)
