@@ -17,7 +17,7 @@ var_min = 'TMin24'
 var_min_data = f[var_min][:]  # 获取变量的数据
 var_min_data = np.array(var_min_data)  # 转化为np.array数组
 
-threshold = 9  # 输入阈值
+threshold = 20  # 输入阈值
 
 
 def getTimeValue(self):
@@ -105,6 +105,8 @@ diwen_days = []  # 记录出现满足预警条件的日期
 for mark in diwen_mark:
     diwen_days.append(getTimeValue(f)[0][mark])
 
+print(diwen_days)
+
 dw_alert_sum = np.zeros((17, 22))
 for diwen in np.array(diwen_list, dtype=int):
     dw_alert = np.where(diwen > 2, 1, 0)  # 根据出现预警的次数二值化
@@ -112,7 +114,6 @@ for diwen in np.array(diwen_list, dtype=int):
 
 # 出图
 dw_alert_sum = dw_alert_sum * 19  # 19=255/13 取整
-print(dw_alert_sum)
 dw_alert_sum = dw_alert_sum.astype(np.float32)
 dw_alert_sum = cv2.resize(dw_alert_sum, (440, 340),
                           interpolation=cv2.INTER_NEAREST)
