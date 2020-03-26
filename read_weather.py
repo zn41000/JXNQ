@@ -39,9 +39,9 @@ def getTimeValue(self):
 
 
 if __name__ == "__main__":
-    # filename = sys.argv[1]
-    # xlon = sys.argv[2]
-    # ylat = sys.argv[3]
+    filename = sys.argv[1]
+    xlon = sys.argv[2]
+    ylat = sys.argv[3]
 
     filename = "C:/Users/Zn/Desktop/WORK/2019120516.nc"  # .nc文件路径
 
@@ -76,8 +76,8 @@ if __name__ == "__main__":
         np.around(var_lat_data, decimals=2),
     )  # 将经纬度数据统一保留两位小数
 
-    print("经度可选项(保留两位小数):", var_lon_data)
-    print("纬度可选项(保留两位小数):", var_lat_data)
+    # print("经度可选项(保留两位小数):", var_lon_data)
+    # print("纬度可选项(保留两位小数):", var_lat_data)
 
     # 获取一星期time数据对应下标
     daylist = getTimeValue(f)[1]
@@ -87,16 +87,13 @@ if __name__ == "__main__":
         week_in = np.argwhere(getTimeValue(f)[2] == day)  # week_in为np格式浮点数
         week_out = int(week_in[0])  # 转化为int整数
         weeklist.append(week_out)
-    print(weeklist)
 
     # 根据输入经纬度获取对应点坐标
-    xlon = input("请输入经度:")
-    ylat = input("请输入纬度:")
+    # xlon = input("请输入经度:")
+    # ylat = input("请输入纬度:")
     lon_in = np.argwhere(var_lon_data == float(xlon))
     lat_in = np.argwhere(var_lat_data == float(ylat))
-    # print("读取输入的经纬度对应下标：", lon_in, lat_in)
     lon_out, lat_out = int(lon_in[0]), int(lat_in[0])
-    # print("输入的经纬度对应下标分别是：", lon_out, lat_out)
 
     def findcell(t, x, y, attribute):  # 传入定位下标参数与目标属性，输出所需位置的属性值
         attribute_week = []
@@ -171,6 +168,11 @@ if __name__ == "__main__":
     }
     Ww_week = [weather[x] if x in weather else x for x in Ww_week]
 
-    print("一周最高气温：", TMax_week)
-    print("一周最低气温：", TMin_week)
-    print("一周天气现象：", Ww_week)
+    print(
+        "Max_temperature_week:",
+        TMax_week,
+        "/Min_temperature_week:",
+        TMin_week,
+        "/Weather_week:",
+        Ww_week,
+    )
