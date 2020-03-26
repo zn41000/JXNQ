@@ -9,9 +9,9 @@ import cv2
 def getTimeValue(self):
 
     dateTimeNumList = []  # 准备存储time的值
-    dateTimeUnits = ''  # 准备记录初始时间
+    dateTimeUnits = ""  # 准备记录初始时间
     for key in self.variables.keys():  # 在变量中筛选出time变量的全部信息
-        if key.lower() in ['time', 't']:
+        if key.lower() in ["time", "t"]:
             dateTimeNumList = self.variables[key][:]  # 获取time字段全部值
             dateTimeUnits = self.variables[key].units  # 获取初始时间信息
             break
@@ -20,16 +20,15 @@ def getTimeValue(self):
     dayValueList = []  # 该列表存储日值数据对应的time字段值
 
     # dateTimeUnits = 'hours since yyyymmddhhmmss'
-    startDateTimeStr = ' '.join(dateTimeUnits.split()[-1:])  # -1提取日期
+    startDateTimeStr = " ".join(dateTimeUnits.split()[-1:])  # -1提取日期
 
-    stdt = datetime.datetime.strptime(
-        startDateTimeStr, '%Y%m%d%H%M%S')  # stdt=真实起始时间
+    stdt = datetime.datetime.strptime(startDateTimeStr, "%Y%m%d%H%M%S")  # stdt=真实起始时间
 
-    if dateTimeUnits.split()[0] == 'hours':  # 0提取计时单位
+    if dateTimeUnits.split()[0] == "hours":  # 0提取计时单位
         for dtn in dateTimeNumList:  # 逐一提取time字段值
             dt = stdt + datetime.timedelta(hours=dtn)  # 真实时间 = 起始时间 + 时间差
-            ymdH = dt.strftime('%Y-%m-%d')  # 生成真实日期字符串
-            H = dt.strftime('%H')  # 生成真实时间值
+            ymdH = dt.strftime("%Y-%m-%d")  # 生成真实日期字符串
+            H = dt.strftime("%H")  # 生成真实时间值
             dateTimeStrList.append(ymdH)
 
             # 取出每日20点的time字段值，并存入列表
@@ -43,8 +42,7 @@ def getTimeValue(self):
 def imgout(img_in, scatter, red, green, blue, img_out):  # 出图
     img_gray = img_in * scatter  # 离散扩大到最大值为255
     img_gray = img_gray.astype(np.uint8)
-    img_gray_rsz = cv2.resize(img_gray, (440, 340),
-                              interpolation=cv2.INTER_NEAREST)
+    img_gray_rsz = cv2.resize(img_gray, (440, 340), interpolation=cv2.INTER_NEAREST)
     img_rgba = cv2.cvtColor(img_gray_rsz, cv2.COLOR_GRAY2RGBA)
     img_rgba[:, :, 3] = img_gray_rsz  # Alpha通道
     img_rgba[:, :, 0] = blue  # B通道
@@ -60,24 +58,24 @@ def disaster(img):  # 判断是否出现灾情
         print(False)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # filename = sys.argv[1]
     # out_imgpath = sys.argv[2]
     # out_txtpath = sys.argv[3]
     # threshold = sys.argv[4]
 
-    filename = 'C:/Users/Zn/Desktop/WORK/2019120516.nc'   # 输入.nc文件名
-    out_imgpath = 'C:/Users/Zn/Desktop/WORK/diwen/diwen.png'  # 输出图像路径
-    out_txtpath = 'C:/Users/Zn/Desktop/WORK/diwen/alert.txt'  # 输出文件路径
+    filename = "C:/Users/Zn/Desktop/WORK/2019120516.nc"  # 输入.nc文件名
+    out_imgpath = "C:/Users/Zn/Desktop/WORK/diwen/diwen.png"  # 输出图像路径
+    out_txtpath = "C:/Users/Zn/Desktop/WORK/diwen/alert.txt"  # 输出文件路径
     threshold = 20  # 输入阈值
 
     f = nc.Dataset(filename)  # 读取.nc文件，传入f中
 
-    var_max = 'TMax24'
+    var_max = "TMax24"
     var_max_data = f[var_max][:]  # 获取变量的数据
     var_max_data = np.array(var_max_data)  # 转化为np.array数组
 
-    var_min = 'TMin24'
+    var_min = "TMin24"
     var_min_data = f[var_min][:]  # 获取变量的数据
     var_min_data = np.array(var_min_data)  # 转化为np.array数组
 
@@ -118,11 +116,10 @@ if __name__ == '__main__':
     diwen_condition = np.zeros((17, 22))  # 判断连续3天条件
 
     for x in range(13):
-        diwen_condition = diwen_ez[x][:] + diwen_ez[x+1][:] + diwen_ez[x+2][:]
+        diwen_condition = diwen_ez[x][:] + diwen_ez[x + 1][:] + diwen_ez[x + 2][:]
         diwen_list.append(diwen_condition)
         if np.max(diwen_condition) == 3:
-            diwen_mark_in = np.argwhere(
-                getTimeValue(f)[2] == getTimeValue(f)[1][x])
+            diwen_mark_in = np.argwhere(getTimeValue(f)[2] == getTimeValue(f)[1][x])
             diwen_mark.append(int(diwen_mark_in[0]))
 
     # print(diwen_mark)
@@ -136,14 +133,14 @@ if __name__ == '__main__':
     # print(diwen_days)
 
     # 记录预警日期到文件中
-    with open(out_txtpath, 'w+') as fp:
+    with open(out_txtpath, "w+") as fp:
         thisday = getTimeValue(f)[0][0]
         str_today = "今天的日期为：\n" + thisday + "\n"
         str_alert = "出现低温预警的日期有：\n"
         fp.write(str_today)
         fp.write(str_alert)
         for line in diwen_days:
-            fp.writelines(line+'\n')
+            fp.writelines(line + "\n")
         fp.close()
 
     dw_alert_sum = np.zeros((17, 22))
