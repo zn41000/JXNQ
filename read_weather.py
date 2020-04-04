@@ -3,6 +3,7 @@
 import netCDF4 as nc
 import numpy as np
 import datetime
+import json
 
 
 def getTimeValue(self):
@@ -82,11 +83,15 @@ if __name__ == "__main__":
     # 获取一星期time数据对应下标
     daylist = getTimeValue(f)[1]
     week = daylist[:7]
-    weeklist = []
+    weeklist = []  # 存储一星期对应下标
+    ymd = []  # 存储一星期真实日期
     for day in week:
         week_in = np.argwhere(getTimeValue(f)[2] == day)  # week_in为np格式浮点数
         week_out = int(week_in[0])  # 转化为int整数
         weeklist.append(week_out)
+        ymd.append(getTimeValue(f)[0][week_out])
+    # print(weeklist)
+    # print(ymd)
 
     # 根据输入经纬度获取对应点坐标
     xlon = input("请输入经度:")
@@ -109,6 +114,7 @@ if __name__ == "__main__":
 
     Ww_week = np.array(Ww_week)
     Ww_week = Ww_week.astype(np.int32)
+    Ww_week = np.array(Ww_week).tolist()
 
     # weather = {
     #     0: "晴",
@@ -168,11 +174,28 @@ if __name__ == "__main__":
     # }
     # Ww_week = [weather[x] if x in weather else x for x in Ww_week]
 
-    print(
-        "Max_temperature_week:",
-        TMax_week,
-        "/Min_temperature_week:",
-        TMin_week,
-        "/Weather_week:",
-        Ww_week,
-    )
+    # print(
+    #     "date:",
+    #     ymd,
+    #     "/Max_temperature_week:",
+    #     TMax_week,
+    #     "/Min_temperature_week:",
+    #     TMin_week,
+    #     "/Weather_week:",
+    #     Ww_week,
+    # )
+
+    condition_perday = []
+    for i in range(7):
+        items = [
+            ["Max_temperature", TMax_week[i]],
+            ["Min_temperature", TMin_week[i]],
+            ["Weather", Ww_week[i]],
+        ]
+        items_dict = dict(items)
+        condition_perday.append(items_dict)
+    result_dict = dict(zip(ymd, condition_perday))
+    # print(result_dict)
+
+    json_out = json.dumps(result_dict)
+    print(json_out)
