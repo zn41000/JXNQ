@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
     diwen_ez = []
     for i in range(15):
-        condition = np.where(Tmean_list[i][:] < threshold, 1, 0)  # 根据阈值二值化
+        condition = np.where(Tmean_list[i][:] < int(threshold), 1, 0)  # 根据阈值二值化
         diwen_ez.append(condition)  # 存入二值数据
     diwen_ez = np.array(diwen_ez)  # 便于后续计算
 

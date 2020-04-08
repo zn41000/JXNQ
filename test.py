@@ -53,3 +53,16 @@ def getTimeValue(self):
 
 print(getTimeValue(f)[0])
 print(getTimeValue(f)[1])
+
+condition_perday = []
+for i in range(7):
+    iterms = [
+        ["Max_temperature_week", TMax_week[i]],
+        ["Min_temperature_week", TMin_week[i]],
+        ["Weather_week", Ww_week[i]],
+    ]
+    print(iterms)
+    condition_perday.append(iterms)
+    print(condition_perday)
+
+result_dict = dict(zip(ymd, condition_perday))
