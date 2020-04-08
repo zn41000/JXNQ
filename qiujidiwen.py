@@ -43,12 +43,17 @@ def imgout(img_in, scatter, red, green, blue, img_out):  # 出图
     img_gray = img_in * scatter  # 离散扩大到最大值为255
     img_gray = img_gray.astype(np.uint8)
     img_gray_rsz = cv2.resize(img_gray, (440, 340), interpolation=cv2.INTER_NEAREST)
-    img_rgba = cv2.cvtColor(img_gray_rsz, cv2.COLOR_GRAY2RGBA)
-    img_rgba[:, :, 3] = img_gray_rsz  # Alpha通道
-    img_rgba[:, :, 0] = blue  # B通道
-    img_rgba[:, :, 1] = green  # G通道
-    img_rgba[:, :, 2] = red  # R通道
-    cv2.imwrite(img_out, img_rgba)
+    img_rgb = cv2.cvtColor(img_gray_rsz, cv2.COLOR_GRAY2BGR)
+    # img_rgb[:, :, 3] = 128  # Alpha通道
+    img_rgb[:, :, 0] = blue  # B通道
+    img_rgb[:, :, 1] = green  # G通道
+    img_rgb[:, :, 2] = red  # R通道
+    cv2.imwrite("C:/Users/Zn/Desktop/WORK/diwen/diwen_rgb.png", img_rgb)
+
+    img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2HSV)
+    print(img_hsv[0][0][:])
+
+    cv2.imwrite(img_out, img_hsv)
 
 
 def disaster(img):  # 判断是否出现灾情
@@ -65,7 +70,7 @@ if __name__ == "__main__":
     # threshold = sys.argv[4]
 
     filename = "C:/Users/Zn/Desktop/WORK/2019120516.nc"  # 输入.nc文件名
-    out_imgpath = "C:/Users/Zn/Desktop/WORK/diwen/diwen.png"  # 输出图像路径
+    out_imgpath = "C:/Users/Zn/Desktop/WORK/diwen/diwen_hsv.png"  # 输出图像路径
     out_txtpath = "C:/Users/Zn/Desktop/WORK/diwen/alert.txt"  # 输出文件路径
     threshold = 20  # 输入阈值
 

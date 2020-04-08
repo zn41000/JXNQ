@@ -7,10 +7,11 @@ Created on Thu Mar 12 09:47:04 2020
 import netCDF4 as nc
 import numpy as np
 import cv2
-import pyexiv2
-from pyexiv2 import Image
+#import pyexiv2
+#from pyexiv2 import Image
 import PIL.Image as IImage
 import colorsys
+import sys
 
 
 def num2time(time_data, time_start):  # 区分日期
@@ -70,7 +71,7 @@ def Ww12_day_day(Ww12_data, time_data, time_start):  # 获取20点天气数据
     return Ww12_day
 
 
-def transparent_back(img):  # 增加北京隐藏
+def transparent_back(img):  # 增加背景隐藏
     img = img.convert("RGBA")
     L, H = img.size
     color_0 = (0, 0, 0, 255)
@@ -81,6 +82,9 @@ def transparent_back(img):  # 增加北京隐藏
             if color_1 == color_0:
                 color_1 = color_1[:-1] + (0,)
                 img.putpixel(dot, (0, 0, 0, 0))
+            else:
+                color_1 = color_1[:-1] + (128,)
+                img.putpixel(dot,color_1)                
     return img
 
 
@@ -148,50 +152,6 @@ def coordinate(lat_data, lon_data):  # 获取数据地理范围
     coo = [lef_up, rig_do]
     return coo
 
-
-def writ_gps(image_path, coo):
-    # 转换并写入图像地理范围，存储于Xmp.dc字段下(x1、y1)(x2,y2)下
-    # {'Xmp.dc.x1': 'E120.25',
-    # 'Xmp.dc.y1': 'N31.05000000000001',
-    # 'Xmp.dc.x2': 'E121.29999999999994',
-    # 'Xmp.dc.y2': 'N30.25'}
-
-    if coo[0][0] > 0:
-        long_location_lef = "E"
-    else:
-        long_location_lef = "W"
-    if coo[0][1] > 0:
-        lati_location_lef = "N"
-    else:
-        lati_location_lef = "S"
-    if coo[1][0] > 0:
-        long_location_rig = "E"
-    else:
-        long_location_rig = "W"
-    if coo[1][1] > 0:
-        lati_location_rig = "N"
-    else:
-        lati_location_rig = "S"
-
-    longituade_lef = abs(coo[0][0])
-    latituade_lef = abs(coo[0][1])
-    longituade_rig = abs(coo[1][0])
-    latituade_rig = abs(coo[1][1])
-
-    point1_x1 = str(long_location_lef) + str(longituade_lef) + "°"
-    point1_y1 = str(lati_location_lef) + str(latituade_lef) + "°"
-    point2_x1 = str(long_location_rig) + str(longituade_rig) + "°"
-    point2_y2 = str(lati_location_rig) + str(latituade_rig) + "°"
-
-    img = Image(image_path)
-    img.modify_xmp({"Xmp.dc.x1": point1_x1})
-    img.modify_xmp({"Xmp.dc.y1": point1_y1})
-    img.modify_xmp({"Xmp.dc.x2": point2_x1})
-    img.modify_xmp({"Xmp.dc.y2": point2_y2})
-    img.close()
-
-
-#    print('*******Calculate complete！*******')
 def data_read(filename):
     f = nc.Dataset(filename)  # 读取.nc文件，传入f中。此时f包含了该.nc文件的全部信息
     pr = "Pr24"
@@ -227,17 +187,17 @@ def data_read(filename):
 
 
 if __name__ == "__main__":
-    #    filename = sys.argv[1]
-    #    pr_Threshold = sys.argv[2]
-    #    te_Threshold = sys.argv[3]
-    #    outpath = sys.argv[4]
-    #    step = sys.argv[5]
+    filename = sys.argv[1]
+    pr_Threshold = float(sys.argv[2])
+    te_Threshold = float(sys.argv[3])
+    step = int(sys.argv[4])
+    outputname = sys.argv[5]
 
-    filename = r"C:\Users\LX\Desktop\zngxjx\111\2019062110.nc"  # .nc文件名
-    outputname = r"C:\Users\LX\Desktop\zngxjx\output/2.png"
-    pr_Threshold = 0.1  # 输入降雨阈值
-    te_Threshold = 23  # 温度阈值
-    step = 2  # 连续天数阈值
+#    filename = r"C:\Users\LX\Desktop\11111\zngxjx\111\2019061710.nc"  # .nc文件名
+#    outputname = r"C:\Users\LX\Desktop\11111\zngxjx\111\lanyang.png"
+#    pr_Threshold = 0.1  # 输入降雨阈值
+#    te_Threshold = 23  # 温度阈值
+#    step = 2  # 连续天数阈值
     weather = [
         2,
         3,
@@ -284,10 +244,7 @@ if __name__ == "__main__":
     img1 = IImage.open(outputname)  # 背景透明化
     img1 = transparent_back(img1)
     img1.save(outputname)
-    writ_gps(outputname, coo)  # 写入坐标信息
+
     print(seedling)
 
 
-#    img = Image(outputname)
-# #    img.read_xmp()
-# #    img.close()

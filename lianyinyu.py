@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 """
 Created on Thu Mar 12 09:47:04 2020
 
@@ -8,9 +6,11 @@ Created on Thu Mar 12 09:47:04 2020
 import netCDF4 as nc
 import numpy as np
 import cv2
-import pyexiv2
-from pyexiv2 import Image
+#import pyexiv2
+#from pyexiv2 import Image
 import PIL.Image as IImage
+import sys
+import colorsys
 
 
 def pre_day(pr_data, time_data, time_start):  # 获取20点降水数据
@@ -42,19 +42,26 @@ def transparent_back(img):
             if color_1 == color_0:
                 color_1 = color_1[:-1] + (0,)
                 img.putpixel(dot, (0, 0, 0, 0))
+            else:
+                color_1 = color_1[:-1] + (128,)
+                img.putpixel(dot,color_1) 
     return img
 
 
 def several_rain(
     pr_data, Ww12_data, time_data, time_start, pr_Threshold, step, weather, outputname
-):  # 计算烂秧指数
+):  # 计算连阴雨指数
     pre_data_day = pre_day(pr_data, time_data, time_start)
     Ww12_day = Ww12_day_day(Ww12_data, time_data, time_start)
     H, W = pre_data_day[0].shape
-    new_im = np.zeros((H, W))
+    new_im = np.zeros((H, W, 3))
+    HSV_color = colorsys.rgb_to_hsv(255, 185, 66)  # 规定色彩转HSV
+    lianyinyu = False
     for i in range(H):
         for j in range(W):
             #            print('percent   '+str(round((i*W+j)/(H*W)*100,4))+'%')
+            number_day = 0
+            HSV_V = HSV_color[2]
             for k in range(15 - step):
                 #                print('percent   '+str(round((i*W+j)/(H*W)*100,4))+'%')
                 pre_4 = []
@@ -62,20 +69,27 @@ def several_rain(
                 for l in range(step):
                     pre_4.append(pre_data_day[k + l][i, j])
                     Ww12_4.append(Ww12_day[k + l][i, j])
-                #                print(len([pre for pre in pre_4 if pre > pr_Threshold]),[pre for pre in pre_4 if pre > pr_Threshold])
-                #                print(len([Ww for Ww in Ww12_4 if Ww in weather]),[Ww for Ww in Ww12_4 if Ww in weather])
-                #                print(len([pre for pre in pre_4 if pre > pr_Threshold])>=step and len([Ww for Ww in Ww12_4 if Ww in weather])>=step)
+
                 if (
                     len([pre for pre in pre_4 if pre > pr_Threshold]) >= step
                     and len([Ww for Ww in Ww12_4 if Ww in weather]) >= step
                 ):
-                    new_im[i, j] = 255
+                    number_day = number_day + 1  # 计算连续天数
+                    lianyinyu = True
+                    HSV_V = HSV_V - 10  # 修改颜色亮度
+            if number_day != 0:
+                RGB_color = colorsys.hsv_to_rgb(
+                    HSV_color[0], HSV_color[1], HSV_V
+                )  # HSV转RGB
+                new_im[i, j, 0] = RGB_color[0]
+                new_im[i, j, 1] = RGB_color[1]
+                new_im[i, j, 2] = RGB_color[2]
     fnjh_out = new_im
     fnjh_out = fnjh_out.astype(np.float32)
     fnjh_out = cv2.resize(fnjh_out, (440, 340), interpolation=cv2.INTER_NEAREST)
     cv2.imwrite(outputname, fnjh_out)
-    print("*******Calculate complete！*******")
-
+    #print("*******Calculate complete！*******")
+    return lianyinyu
 
 def coordinate(lat_data, lon_data):  # 获取数据地理范围
     lef_up = (lon_data[0], lat_data[-1])
@@ -84,65 +98,16 @@ def coordinate(lat_data, lon_data):  # 获取数据地理范围
     return coo
 
 
-def writ_gps(image_path, coo):
-    # 转换并写入图像地理范围，存储于Xmp.dc字段下(x1、y1)(x2,y2)下
-    # {'Xmp.dc.x1': 'E120.25',
-    # 'Xmp.dc.y1': 'N31.05000000000001',
-    # 'Xmp.dc.x2': 'E121.29999999999994',
-    # 'Xmp.dc.y2': 'N30.25'}
-
-    if coo[0][0] > 0:
-        long_location_lef = "E"
-    else:
-        long_location_lef = "W"
-    if coo[0][1] > 0:
-        lati_location_lef = "N"
-    else:
-        lati_location_lef = "S"
-    if coo[1][0] > 0:
-        long_location_rig = "E"
-    else:
-        long_location_rig = "W"
-    if coo[1][1] > 0:
-        lati_location_rig = "N"
-    else:
-        lati_location_rig = "S"
-
-    longituade_lef = abs(coo[0][0])
-    latituade_lef = abs(coo[0][1])
-    longituade_rig = abs(coo[1][0])
-    latituade_rig = abs(coo[1][1])
-
-    point1_x1 = str(long_location_lef) + str(longituade_lef) + "°"
-    point1_y1 = str(lati_location_lef) + str(latituade_lef) + "°"
-    point2_x1 = str(long_location_rig) + str(longituade_rig) + "°"
-    point2_y2 = str(lati_location_rig) + str(latituade_rig) + "°"
-
-    img = Image(image_path)
-    img.modify_xmp({"Xmp.dc.x1": point1_x1})
-    img.modify_xmp({"Xmp.dc.y1": point1_y1})
-    img.modify_xmp({"Xmp.dc.x2": point2_x1})
-    img.modify_xmp({"Xmp.dc.y2": point2_y2})
-    img.close()
-
-
-def disaster(img):  # 判断是否出现灾情
-    if np.max(img) > 0:
-        print(True)
-    else:
-        print(False)
-
-
 if __name__ == "__main__":
-    #    filename = sys.argv[1]
-    #    pr_Threshold = sys.argv[2]
-    #    te_Threshold = sys.argv[3]
-    #    outpath = sys.argv[4]
+    filename = sys.argv[1]
+    pr_Threshold = float(sys.argv[2])
+    step = int(sys.argv[3])
+    outputname  = sys.argv[4]
 
-    filename = r"C:\Users\LX\Desktop\zngxjx\nc\2019110110.nc"  # .nc文件名
-    outputname = r"C:\Users\LX\Desktop\zngxjx\output\4.png"
-    pr_Threshold = 0.1  # 输入阈值
-    step = 4
+#    filename = r"C:\Users\LX\Desktop\11111\zngxjx\111\2019061710.nc"  # .nc文件名
+#    outputname = r"C:\Users\LX\Desktop\11111\zngxjx\111\lianyinyu.png"
+#    pr_Threshold = 0.1  # 输入阈值
+#    step = 4
     weather = {
         2,
         3,
@@ -198,7 +163,7 @@ if __name__ == "__main__":
     lon_data = f[lon][:]
     lon_data = np.array(lon_data)
 
-    several_rain(
+    lianyinyu = several_rain(
         pr_data,
         Ww12_data,
         time_data,
@@ -212,11 +177,6 @@ if __name__ == "__main__":
     img1 = IImage.open(outputname)
     img1 = transparent_back(img1)
     img1.save(outputname)
-    writ_gps(outputname, coo)
+    print(lianyinyu)
 
-    # 判断灾情
-    disaster(img1)
 
-#    img = Image(outputname)
-#    img.read_xmp()
-#    img.close()
