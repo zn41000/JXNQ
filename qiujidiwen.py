@@ -39,21 +39,20 @@ def getTimeValue(self):
     return dateTimeStrList, dayValueList, dateTimeNumList
 
 
-def imgout(img_in, scatter, red, green, blue, img_out):  # 出图
+def imgout(img_in, scatter, red, green, blue, alpha, img_out):  # 出图
+    img_channel = cv2.resize(img_in, (440, 340), interpolation=cv2.INTER_NEAREST)
+    img_ez = np.where(img_channel > 0, 1, 0)  # 二值图数据
     img_gray = img_in * scatter  # 离散扩大到最大值为255
     img_gray = img_gray.astype(np.uint8)
     img_gray_rsz = cv2.resize(img_gray, (440, 340), interpolation=cv2.INTER_NEAREST)
-    img_rgb = cv2.cvtColor(img_gray_rsz, cv2.COLOR_GRAY2BGR)
-    # img_rgb[:, :, 3] = 128  # Alpha通道
-    img_rgb[:, :, 0] = blue  # B通道
-    img_rgb[:, :, 1] = green  # G通道
-    img_rgb[:, :, 2] = red  # R通道
-    cv2.imwrite("C:/Users/Zn/Desktop/WORK/diwen/diwen_rgb.png", img_rgb)
+    img_rgb = cv2.cvtColor(img_gray_rsz, cv2.COLOR_GRAY2RGBA)
 
-    img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2HSV)
-    print(img_hsv[0][0][:])
+    img_rgb[:, :, 3] = alpha  # Alpha通道
+    img_rgb[:, :, 0] = blue * img_ez  # B通道
+    img_rgb[:, :, 1] = (green * img_ez) - (img_channel * 11)  # G通道
+    img_rgb[:, :, 2] = red * img_ez  # R通道
 
-    cv2.imwrite(img_out, img_hsv)
+    cv2.imwrite(img_out, img_rgb)
 
 
 def disaster(img):  # 判断是否出现灾情
@@ -66,13 +65,15 @@ def disaster(img):  # 判断是否出现灾情
 if __name__ == "__main__":
     # filename = sys.argv[1]
     # out_imgpath = sys.argv[2]
-    # out_txtpath = sys.argv[3]
-    # threshold = sys.argv[4]
+    # threshold1 = sys.argv[3]
+    # threshold2 = sys.argv[4]
+    # alpha_val = sys.argv[5]
 
     filename = "C:/Users/Zn/Desktop/WORK/2019120516.nc"  # 输入.nc文件名
-    out_imgpath = "C:/Users/Zn/Desktop/WORK/diwen/diwen_hsv.png"  # 输出图像路径
-    out_txtpath = "C:/Users/Zn/Desktop/WORK/diwen/alert.txt"  # 输出文件路径
-    threshold = 20  # 输入阈值
+    out_imgpath = "C:/Users/Zn/Desktop/WORK/diwen/diwen_rgba.png"  # 输出图像路径
+    threshold1 = 5  # 输入阈值(气温)
+    threshold2 = 3  # 输入阈值(天)
+    alpha_val = 200  # 输入透明程度(0-255)
 
     f = nc.Dataset(filename)  # 读取.nc文件，传入f中
 
@@ -91,70 +92,44 @@ if __name__ == "__main__":
         day_in = np.argwhere(getTimeValue(f)[2] == day)  # week_in为np格式浮点数
         day_out = int(day_in[0])  # 转化为int整数
         daylist.append(day_out)
-    # print(daylist)
 
     # 获取15天的日值数据
     TMax_daylist = []
     for d in daylist:
         TMax_daylist.append(var_max_data[d][:])
-    # print(np.shape(TMax_daylist))
 
     TMin_daylist = []
     for d in daylist:
         TMin_daylist.append(var_min_data[d][:])
-    # print(np.shape(TMin_daylist))
 
     # 获取日均值数据
     Tmean_list = (np.array(TMax_daylist) - np.array(TMin_daylist)) / 2
 
     diwen_ez = []
     for i in range(15):
-        condition = np.where(Tmean_list[i][:] < int(threshold), 1, 0)  # 根据阈值二值化
+        condition = np.where(Tmean_list[i][:] < float(threshold1), 1, 0)  # 根据阈值二值化
         diwen_ez.append(condition)  # 存入二值数据
     diwen_ez = np.array(diwen_ez)  # 便于后续计算
 
-    # print(type(diwen_ez))
-    # print(np.shape(diwen_ez))
+    diwen_list = []  # 用于将15天二值数据每阈值天求和，然后储存
 
-    diwen_list = []  # 用于将15天二值数据每三天求和，然后储存
-    diwen_mark = []  # 记录每一次出现满足预警条件的日期下标
-    diwen_condition = np.zeros((17, 22))  # 判断连续3天条件
+    diwen_condition = np.zeros((17, 22))  # 判断连续几天条件
 
-    for x in range(13):
-        diwen_condition = diwen_ez[x][:] + diwen_ez[x + 1][:] + diwen_ez[x + 2][:]
+    for x in range(15):
+        if x + threshold2 > 15:
+            break
+        for i in range(threshold2):
+            diwen_condition += diwen_ez[x + i][:]
         diwen_list.append(diwen_condition)
-        if np.max(diwen_condition) == 3:
-            diwen_mark_in = np.argwhere(getTimeValue(f)[2] == getTimeValue(f)[1][x])
-            diwen_mark.append(int(diwen_mark_in[0]))
-
-    # print(diwen_mark)
-
-    # print(np.shape(diwen_list))
-
-    diwen_days = []  # 记录出现满足预警条件的日期
-    for mark in diwen_mark:
-        diwen_days.append(getTimeValue(f)[0][mark])
-
-    # print(diwen_days)
-
-    # 记录预警日期到文件中
-    with open(out_txtpath, "w+") as fp:
-        thisday = getTimeValue(f)[0][0]
-        str_today = "今天的日期为：\n" + thisday + "\n"
-        str_alert = "出现低温预警的日期有：\n"
-        fp.write(str_today)
-        fp.write(str_alert)
-        for line in diwen_days:
-            fp.writelines(line + "\n")
-        fp.close()
+        diwen_condition = np.zeros((17, 22))
 
     dw_alert_sum = np.zeros((17, 22))
     for diwen in np.array(diwen_list, dtype=int):
-        dw_alert = np.where(diwen > 2, 1, 0)  # 根据出现预警的次数二值化
+        dw_alert = np.where(diwen >= threshold2, 1, 0)  # 根据出现预警的次数二值化
         dw_alert_sum += dw_alert  # 叠加总次数为一张图（一个点最多出现13次）
 
     # 判断灾情
     disaster(dw_alert_sum)
 
     # 出图
-    imgout(dw_alert_sum, 19, 180, 0, 194, out_imgpath)
+    imgout(dw_alert_sum, 19, 205, 180, 205, alpha_val, out_imgpath)

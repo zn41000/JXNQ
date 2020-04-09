@@ -39,15 +39,16 @@ def getTimeValue(self):
     return dateTimeStrList, dayValueList, dateTimeNumList
 
 
-def imgout(img_in, scatter, red, green, blue, img_out):  # 出图
+def imgout(img_in, scatter, red, green, blue, alpha, img_out):  # 出图
+    img_channel = cv2.resize(img_in, (440, 340), interpolation=cv2.INTER_NEAREST)
     img_gray = img_in * scatter  # 离散扩大到最大值为255
     img_gray = img_gray.astype(np.uint8)
     img_gray_rsz = cv2.resize(img_gray, (440, 340), interpolation=cv2.INTER_NEAREST)
     img_rgba = cv2.cvtColor(img_gray_rsz, cv2.COLOR_GRAY2RGBA)
-    img_rgba[:, :, 3] = img_gray_rsz  # Alpha通道
-    img_rgba[:, :, 0] = blue  # B通道
-    img_rgba[:, :, 1] = green  # G通道
-    img_rgba[:, :, 2] = red  # R通道
+    img_rgba[:, :, 3] = alpha  # Alpha通道
+    img_rgba[:, :, 0] = blue * img_channel  # B通道
+    img_rgba[:, :, 1] = green * img_channel  # G通道
+    img_rgba[:, :, 2] = red * img_channel  # R通道
     cv2.imwrite(img_out, img_rgba)
 
 
@@ -62,10 +63,12 @@ if __name__ == "__main__":
     # filename = sys.argv[1]
     # out_imgpath = sys.argv[2]
     # threshold = sys.argv[3]
+    # alpha_val = sys.argv[4]
 
     filename = "C:/Users/Zn/Desktop/WORK/2019120516.nc"  # .nc文件名
     out_imgpath = "C:/Users/Zn/Desktop/WORK/baoyu/baoyu.png"  # 输出图像路径
     threshold = 50  # 输入阈值
+    alpha_val = 128  # 输入透明程度(0-255)
 
     # 读取.nc文件，传入f中。此时f包含了该.nc文件的全部信息
     f = nc.Dataset(filename)
@@ -82,6 +85,7 @@ if __name__ == "__main__":
 
     # 判断灾情
     disaster(baoyu_day)
+    print(baoyu_day)
 
     # 出图
-    imgout(baoyu_day, 255, 0, 27, 235, out_imgpath)
+    imgout(baoyu_day, 255, 0, 27, 235, alpha_val, out_imgpath)

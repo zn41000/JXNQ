@@ -39,15 +39,16 @@ def getTimeValue(self):
     return dateTimeStrList, dayValueList, dateTimeNumList
 
 
-def imgout(img_in, scatter, red, green, blue, img_out):  # 出图
+def imgout(img_in, scatter, red, green, blue, alpha, img_out):  # 出图
+    img_channel = cv2.resize(img_in, (440, 340), interpolation=cv2.INTER_NEAREST)
     img_gray = img_in * scatter  # 离散扩大到最大值为255
     img_gray = img_gray.astype(np.uint8)
     img_gray_rsz = cv2.resize(img_gray, (440, 340), interpolation=cv2.INTER_NEAREST)
     img_rgba = cv2.cvtColor(img_gray_rsz, cv2.COLOR_GRAY2RGBA)
-    img_rgba[:, :, 3] = img_gray_rsz  # Alpha通道
-    img_rgba[:, :, 0] = blue  # B通道
-    img_rgba[:, :, 1] = green  # G通道
-    img_rgba[:, :, 2] = red  # R通道
+    img_rgba[:, :, 3] = alpha  # Alpha通道
+    img_rgba[:, :, 0] = blue * img_channel  # B通道
+    img_rgba[:, :, 1] = green * img_channel  # G通道
+    img_rgba[:, :, 2] = red * img_channel  # R通道
     cv2.imwrite(img_out, img_rgba)
 
 
@@ -61,11 +62,15 @@ def disaster(img):  # 判断是否出现灾情
 if __name__ == "__main__":
     # filename = sys.argv[1]
     # out_imgpath = sys.argv[2]
-    # threshold = sys.argv[3]
+    # threshold1 = sys.argv[3]
+    # threshold2 = sys.argv[4]
+    # alpha_val = sys.argv[5]
 
     filename = "C:/Users/Zn/Desktop/WORK/2019120516.nc"  # .nc文件名
     out_imgpath = "C:/Users/Zn/Desktop/WORK/fnjh/fnjh.png"  # 输出图像路径
-    threshold = 30  # 设置阈值
+    threshold1 = 30  # 设置阈值（气温）
+    threshold2 = 10  # 设置阈值（天数）
+    alpha_val = 128  # 输入透明程度(0-255)
 
     f = nc.Dataset(filename)  # 读取.nc文件，传入f中
 
@@ -90,17 +95,17 @@ if __name__ == "__main__":
 
     fnjh_ez = []
     for i in range(15):
-        condition = np.where(TMax_daylist[i][:] < threshold, 1, 0)  # 根据阈值二值化
+        condition = np.where(TMax_daylist[i][:] < threshold1, 1, 0)  # 根据阈值二值化
         fnjh_ez.append(condition)  # 存入二值数据
     fnjh_ez = np.array(fnjh_ez)  # 便于后续计算
 
     fnjh_sum = np.zeros((17, 22))
     for fnjh in np.array(fnjh_ez, dtype=int):
         fnjh_sum += fnjh  # 叠加总次数为一张图（一个点最多出现15次）
-    fnjh_final = np.where(fnjh_sum > 10, 1, 0)  # 根据出现预警的次数二值化为一张图
+    fnjh_final = np.where(fnjh_sum > threshold2, 1, 0)  # 根据出现预警的次数二值化为一张图
 
     # 判断灾情
     disaster(fnjh_final)
 
     # 出图
-    imgout(fnjh_final, 255, 61, 119, 255, out_imgpath)
+    imgout(fnjh_final, 255, 61, 119, 255, alpha_val, out_imgpath)

@@ -66,3 +66,10 @@ for i in range(7):
     print(condition_perday)
 
 result_dict = dict(zip(ymd, condition_perday))
+
+    for x in range(15):
+        for i in range(threshold2):
+            if x + threshold2 > 15:
+                break
+            diwen_condition += diwen_ez[x + i][:]
+        diwen_list.append(diwen_condition)
