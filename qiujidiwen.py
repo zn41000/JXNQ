@@ -7,7 +7,6 @@ import cv2
 
 
 def getTimeValue(self):
-
     dateTimeNumList = []  # 准备存储time的值
     dateTimeUnits = ""  # 准备记录初始时间
     for key in self.variables.keys():  # 在变量中筛选出time变量的全部信息
