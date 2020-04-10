@@ -7,7 +7,6 @@ import cv2
 
 
 def getTimeValue(self):
-
     dateTimeNumList = []  # 准备存储time的值
     dateTimeUnits = ""  # 准备记录初始时间
     for key in self.variables.keys():  # 在变量中筛选出time变量的全部信息
@@ -45,7 +44,7 @@ def imgout(img_in, scatter, red, green, blue, alpha, img_out):  # 出图
     img_gray = img_gray.astype(np.uint8)
     img_gray_rsz = cv2.resize(img_gray, (440, 340), interpolation=cv2.INTER_NEAREST)
     img_rgba = cv2.cvtColor(img_gray_rsz, cv2.COLOR_GRAY2RGBA)
-    img_rgba[:, :, 3] = alpha  # Alpha通道
+    img_rgba[:, :, 3] = alpha * msk_rsz  # Alpha通道
     img_rgba[:, :, 0] = blue * img_channel  # B通道
     img_rgba[:, :, 1] = green * img_channel  # G通道
     img_rgba[:, :, 2] = red * img_channel  # R通道
@@ -71,6 +70,25 @@ if __name__ == "__main__":
     threshold1 = 30  # 设置阈值（气温）
     threshold2 = 10  # 设置阈值（天数）
     alpha_val = 128  # 输入透明程度(0-255)
+
+    alpha_mask = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+                           [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                           [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                           [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                           [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                           [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                           [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                           [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+                           [1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+                           [0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]])
+    msk_rsz = cv2.resize(alpha_mask, (440, 340), interpolation=cv2.INTER_NEAREST)
 
     f = nc.Dataset(filename)  # 读取.nc文件，传入f中
 
