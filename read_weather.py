@@ -7,7 +7,6 @@ import json
 
 
 def getTimeValue(self):
-
     dateTimeNumList = []  # 准备存储time的值
     dateTimeUnits = ""  # 准备记录初始时间
     for key in self.variables.keys():  # 在变量中筛选出time变量的全部信息
@@ -100,6 +99,7 @@ if __name__ == "__main__":
     lat_in = np.argwhere(var_lat_data == float(ylat))
     lon_out, lat_out = int(lon_in[0]), int(lat_in[0])
 
+
     def findcell(t, x, y, attribute):  # 传入定位下标参数与目标属性，输出所需位置的属性值
         attribute_week = []
         for i in t:
@@ -107,6 +107,7 @@ if __name__ == "__main__":
             attribute_week.append(attribute_day)
 
         return attribute_week
+
 
     TMax_week = findcell(weeklist, lon_out, lat_out, var_TMax24_data)
     TMin_week = findcell(weeklist, lon_out, lat_out, var_TMin24_data)
