@@ -7,11 +7,30 @@ Created on Thu Mar 12 09:47:04 2020
 import netCDF4 as nc
 import numpy as np
 import cv2
-#import pyexiv2
-#from pyexiv2 import Image
+# import pyexiv2
+# from pyexiv2 import Image
 import PIL.Image as IImage
 import colorsys
 import sys
+
+JXBJ = np.array(
+    [[255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 1, 1, 1, 255, 255, 255, 255, 255, 255],
+     [255, 255, 255, 255, 255, 255, 255, 255, 255, 1, 1, 1, 1, 1, 1, 1, 255, 255, 255, 255, 255, 255],
+     [255, 255, 255, 255, 255, 255, 255, 255, 255, 1, 1, 1, 1, 1, 1, 1, 255, 255, 255, 255, 255, 255],
+     [255, 255, 255, 255, 255, 255, 255, 255, 1, 1, 1, 1, 1, 1, 1, 1, 255, 255, 255, 255, 255, 255],
+     [255, 255, 255, 255, 255, 255, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 255, 255, 255],
+     [255, 255, 255, 255, 255, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 255],
+     [255, 255, 255, 255, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+     [255, 255, 255, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+     [255, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+     [255, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+     [255, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+     [255, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 255, 255, 255],
+     [1, 1, 1, 1, 255, 255, 255, 255, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 255, 255, 255, 255],
+     [255, 255, 1, 255, 255, 255, 255, 255, 255, 1, 1, 1, 1, 1, 1, 1, 1, 255, 255, 255, 255, 255],
+     [255, 255, 255, 255, 255, 255, 255, 255, 255, 1, 1, 1, 1, 1, 255, 255, 255, 255, 255, 255, 255, 255]])
 
 
 def num2time(time_data, time_start):  # 区分日期
@@ -78,27 +97,33 @@ def transparent_back(img):  # 增加背景隐藏
     for h in range(H):
         for l in range(L):
             dot = (l, h)
+            #            print(dot)
             color_1 = img.getpixel(dot)
-            if color_1 == color_0:
-                color_1 = color_1[:-1] + (0,)
-                img.putpixel(dot, (0, 0, 0, 0))
-            else:
+            #            if color_1 == color_0:
+            #                color_1 = color_1[:-1] + (0,)
+            #                img.putpixel(dot, (0, 0, 0, 0))
+            #            else:
+            #                color_1 = color_1[:-1] + (128,)
+            #                img.putpixel(dot,color_1)
+            if color_1 != color_0 and JXBJ[h, l] != 255:
                 color_1 = color_1[:-1] + (128,)
-                img.putpixel(dot,color_1)                
+                img.putpixel(dot, color_1)
+            else:
+                img.putpixel(dot, (0, 0, 0, 0))
     return img
 
 
 def seedling_rotting(
-    te_data,
-    pr_data,
-    Ww12_data,
-    time_data,
-    time_start,
-    te_Threshold,
-    pr_Threshold,
-    step,
-    weather,
-    outputname,
+        te_data,
+        pr_data,
+        Ww12_data,
+        time_data,
+        time_start,
+        te_Threshold,
+        pr_Threshold,
+        step,
+        weather,
+        outputname,
 ):  # 计算烂秧指数
     label = num2time(time_data, time_start)
     tem_mean_day = T_mean_day(te_data, label)
@@ -123,9 +148,9 @@ def seedling_rotting(
                     Ww12_4.append(Ww12_day[k + l][i, j])
 
                 if (
-                    len([tem for tem in tem_4 if tem < te_Threshold]) >= step
-                    and len([pre for pre in pre_4 if pre > pr_Threshold]) >= step
-                    and len([Ww for Ww in Ww12_4 if Ww in weather]) >= step
+                        len([tem for tem in tem_4 if tem < te_Threshold]) >= step
+                        and len([pre for pre in pre_4 if pre > pr_Threshold]) >= step
+                        and len([Ww for Ww in Ww12_4 if Ww in weather]) >= step
                 ):
                     number_day = number_day + 1  # 计算连续天数
                     seedling = True
@@ -141,7 +166,7 @@ def seedling_rotting(
 
     fnjh_out = new_im
     fnjh_out = fnjh_out.astype(np.float32)
-    fnjh_out = cv2.resize(fnjh_out, (440, 340), interpolation=cv2.INTER_NEAREST)
+    #    fnjh_out = cv2.resize(fnjh_out, (440, 340), interpolation=cv2.INTER_NEAREST)
     cv2.imwrite(outputname, fnjh_out)
     return seedling
 
@@ -151,6 +176,7 @@ def coordinate(lat_data, lon_data):  # 获取数据地理范围
     rig_do = (lon_data[-1], lat_data[0])
     coo = [lef_up, rig_do]
     return coo
+
 
 def data_read(filename):
     f = nc.Dataset(filename)  # 读取.nc文件，传入f中。此时f包含了该.nc文件的全部信息
@@ -193,38 +219,12 @@ if __name__ == "__main__":
     step = int(sys.argv[4])
     outputname = sys.argv[5]
 
-#    filename = r"C:\Users\LX\Desktop\11111\zngxjx\111\2019061710.nc"  # .nc文件名
-#    outputname = r"C:\Users\LX\Desktop\11111\zngxjx\111\lanyang.png"
-#    pr_Threshold = 0.1  # 输入降雨阈值
-#    te_Threshold = 23  # 温度阈值
-#    step = 2  # 连续天数阈值
-    weather = [
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        19,
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-    ]  # 天气现象列表
+    #    filename = r"C:\Users\LX\Desktop\11111\zngxjx\111\2019061710.nc"  # .nc文件名
+    #    outputname = r"C:\Users\LX\Desktop\11111\zngxjx\111\lanyang.png"
+    #    pr_Threshold = 0.1  # 输入降雨阈值
+    #    te_Threshold = 23  # 温度阈值
+    #    step = 2  # 连续天数阈值
+    weather = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 21, 22, 23, 24, 25, 26, 27, 28, ]  # 天气现象列表
     pr_data, te_data, Ww12_data, time_start, time_data, lat_data, lon_data = data_read(
         filename
     )
@@ -243,8 +243,7 @@ if __name__ == "__main__":
     coo = coordinate(lat_data, lon_data)  # 经纬度数据获取
     img1 = IImage.open(outputname)  # 背景透明化
     img1 = transparent_back(img1)
+    img1 = img1.resize((440, 340))
     img1.save(outputname)
 
     print(seedling)
-
-
